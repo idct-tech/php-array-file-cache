@@ -1,0 +1,36 @@
+{
+    "name": "idct/php-array-file-cache",
+    "description": "Simple file-based cache system for PHP.",
+    "type": "library",
+    "keywords": [
+        "php",
+        "file",
+        "cache",
+        "serialize",
+        "storage"
+    ],
+    "homepage": "https://github.com/ideaconnect/idct-php-array-file-cache",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bartosz Pachołek",
+            "email": "bartosz@ideaconnect.pl",
+            "role": "lead"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/ideaconnect/idct-php-array-file-cache/issues"
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    },
+    "include-path": [
+        ""
+    ]
+}
