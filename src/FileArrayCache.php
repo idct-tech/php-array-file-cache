@@ -46,7 +46,7 @@ class FileArrayCache implements \ArrayAccess
         if($this->offsetExists($filePath)) {
             unlink($filePath);
         }
-        file_put_contents($filePath, $value);
+        file_put_contents($filePath, serialize($value));
     }
 
     /**
@@ -75,6 +75,6 @@ class FileArrayCache implements \ArrayAccess
      */
     public function offsetGet($offset) {
         $filePath = $this->getCachePath() . $offset;
-        return $this->offsetExists($offset) ? file_get_contents($filePath) : null;
+        return $this->offsetExists($offset) ? unserialize(file_get_contents($filePath)) : null;
     }
 }
