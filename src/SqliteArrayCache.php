@@ -59,7 +59,7 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
         */
         $stmt = $this->db->prepare('INSERT INTO cache (key, value) VALUES (:key, :value)');
         $stmt->bindValue(':key', $offset);
-        $stmt->bindValue(':value', $value);
+        $stmt->bindValue(':value', serialize($value));
         $stmt->execute();
     }
 
