@@ -25,7 +25,7 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
      * @param string $cachePath With the trailing slash
      * @throws \Exception Could not initialize the cache directory.
      */
-    public function __construct($cachePath)
+    public function __construct($cachePath, $reset)
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
@@ -35,8 +35,12 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
             }
         }
 
-        $this->db = new SQLite3($cachePath . 'cache.db');
-        $this->db->exec('CREATE TABLE cache (key STRING, value STRING)');
+        $cacheFile = $cachePath . 'cache.db';
+        if(file_exists($cacheFile) && $reset === true) {
+            unlink($cacheFile);
+        }
+        $this->db = new \SQLite3($cacheFile);
+        $this->db->exec('CREATE TABLE cache (key VARCHAR(48), value STRING)');
     }
 
     /**
