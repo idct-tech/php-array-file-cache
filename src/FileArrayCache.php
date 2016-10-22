@@ -33,6 +33,13 @@ class FileArrayCache implements \ArrayAccess
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
+
+    }
+
+    protected function getParsedKey($hash) {
+        $dir = substr($hash, 0, 2) . "/" . substr($hash, 2, 2) . "/";
+
+        return $dir;
     }
 
     /**
@@ -42,11 +49,17 @@ class FileArrayCache implements \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-        $filePath = $this->getCachePath() . $offset;
+        $hash = md5($offset);
+        $dir = $this->getParsedKey($hash);
+        if(!file_exists($this->getCachePath() . $dir)) {
+            mkdir($this->getCachePath() . $dir, 0777, true);
+        }
+        $filePath = $this->getCachePath() . $dir . $hash;
         if($this->offsetExists($filePath)) {
             unlink($filePath);
         }
         file_put_contents($filePath, serialize($value));
+        return $filePath;
     }
 
     /**
@@ -55,7 +68,8 @@ class FileArrayCache implements \ArrayAccess
      * @return boolean
      */
     public function offsetExists($offset) {
-        $filePath = $this->getCachePath() . $offset;
+        $hash = md5($offset);
+        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
         return file_exists($filePath);
     }
 
@@ -64,7 +78,8 @@ class FileArrayCache implements \ArrayAccess
      * @param string $offset Cache key (Filename)
      */
     public function offsetUnset($offset) {
-        $filePath = $this->getCachePath() . $offset;
+        $hash = md5($offset);
+        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
         unlink($filePath);
     }
 
@@ -74,7 +89,8 @@ class FileArrayCache implements \ArrayAccess
      * @return mixed
      */
     public function offsetGet($offset) {
-        $filePath = $this->getCachePath() . $offset;
+        $hash = md5($offset);
+        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
         return $this->offsetExists($offset) ? unserialize(file_get_contents($filePath)) : null;
     }
 }

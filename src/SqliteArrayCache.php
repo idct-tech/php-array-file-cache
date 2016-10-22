@@ -1,7 +1,7 @@
 <?php
 namespace IDCT;
 
-class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
+class SqliteArrayCache implements \ArrayAccess
 {
     /**
      * Path to which save and from which to load files
@@ -25,7 +25,7 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
      * @param string $cachePath With the trailing slash
      * @throws \Exception Could not initialize the cache directory.
      */
-    public function __construct($cachePath, $reset)
+    public function __construct($cachePath, $reset, $memory = false)
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
@@ -39,8 +39,27 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
         if(file_exists($cacheFile) && $reset === true) {
             unlink($cacheFile);
         }
+
         $this->db = new \SQLite3($cacheFile);
-        $this->db->exec('CREATE TABLE cache (key VARCHAR(48), value STRING)');
+        $this->db->exec("PRAGMA synchronous = OFF");
+        $this->db->exec("PRAGMA journal_mode = MEMORY");
+        $this->db->exec("PRAGMA page_size = 31457280");
+        $this->db->exec("PRAGMA temp_store = MEMORY");
+        $this->db->exec("PRAGMA count_changes = OFF");
+
+
+
+        $this->db->exec('CREATE TABLE cache (key VARCHAR(48), value BLOB)');
+    }
+
+    public function startImport() {
+        $this->db->exec("BEGIN TRANSACTION;");
+        return $this;
+    }
+
+    public function endImport() {
+        $this->db->exec("END TRANSACTION;");
+        return $this;
     }
 
     /**
@@ -59,7 +78,7 @@ class SqliteArrayCache extends FileArrayCache implements \ArrayAccess
         */
         $stmt = $this->db->prepare('INSERT INTO cache (key, value) VALUES (:key, :value)');
         $stmt->bindValue(':key', $offset);
-        $stmt->bindValue(':value', serialize($value));
+        $stmt->bindValue(':value', serialize($value), SQLITE3_BLOB);
         $stmt->execute();
     }
 
