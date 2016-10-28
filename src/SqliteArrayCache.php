@@ -46,10 +46,13 @@ class SqliteArrayCache implements \ArrayAccess
         $this->db->exec("PRAGMA page_size = 31457280");
         $this->db->exec("PRAGMA temp_store = MEMORY");
         $this->db->exec("PRAGMA count_changes = OFF");
-
-
-
-        $this->db->exec('CREATE TABLE cache (key VARCHAR(48), value BLOB)');
+        $this->db->exec('BEGIN;
+CREATE TABLE cache (
+    key VARCHAR(48) PRIMARY KEY,
+    value BLOB
+    );
+CREATE INDEX key_idx ON cache (key);
+COMMIT;');
     }
 
     public function startImport() {
@@ -76,7 +79,7 @@ class SqliteArrayCache implements \ArrayAccess
         }
         file_put_contents($filePath, serialize($value));
         */
-        $stmt = $this->db->prepare('INSERT INTO cache (key, value) VALUES (:key, :value)');
+        $stmt = $this->db->prepare('INSERT OR REPLACE INTO cache (key, value) VALUES (:key, :value)');
         $stmt->bindValue(':key', $offset);
         $stmt->bindValue(':value', serialize($value), SQLITE3_BLOB);
         $stmt->execute();
@@ -111,6 +114,16 @@ class SqliteArrayCache implements \ArrayAccess
      */
     public function offsetGet($offset) {
         $value = $this->db->querySingle('SELECT value FROM cache WHERE key = "'.$offset.'"');
+        if($value === false || $value === null) {
+            return null;
+        }
+
+        return unserialize($value);
+    }
+
+    public function pop($offset) {
+        $value = $this->db->querySingle('SELECT value FROM cache WHERE key = "'.$offset.'"');
+        $this->db->exec('DELETE FROM cache WHERE key = "'.$offset.'"');
         if($value === false || $value === null) {
             return null;
         }
