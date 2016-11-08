@@ -1,61 +1,57 @@
 <?php
+
 namespace IDCT;
 
-class FileArrayCache implements \ArrayAccess
+use IDCT\ArrayCache;
+
+class FileArrayCache extends ArrayCache
 {
     /**
-     * Path to which save and from which to load files
-     * @var string
-     */
-    protected $cachePath;
-
-    /**
-     * Gets the cache path
-     * @return string
-     */
-    public function getCachePath()
-    {
-        return $this->cachePath;
-    }
-
-    /**
-     * Constructs the new object. Requires a cache path to be given.
+     * Constructs the new object. Requires a cache path to be provided.
      *
      * @param string $cachePath With the trailing slash
-     * @throws \Exception Could not initialize the cache directory.
+     * @throws \Exception Could not initialize the cache directory
      */
     public function __construct($cachePath)
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
-            if(false === mkdir($cachePath, 0777, true))
-            {
+            if(false === mkdir($cachePath, 0644, true)) {
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
 
     }
 
-    protected function getParsedKey($hash) {
+    /**
+     * Builds the directory path from the given key. Cache if built using a schema
+     * in which child folders are always grouped by first two symbols of the md5
+     * hash of the key. Such structure is built up to two levels.
+     *
+     * @param string Cache key
+     * @return string
+     */
+    protected function getParsedPrefix($hash)
+    {
         $dir = substr($hash, 0, 2) . "/" . substr($hash, 2, 2) . "/";
 
         return $dir;
     }
 
     /**
-     * Saves the serialized value to the the $cachePath with the given name
+     * Saves the serialized value to the the $cachePath with the given name.
      * @param string $offset ID of the cache key (filename)
      * @param string $value Value to be serialized and saved
      */
     public function offsetSet($offset, $value)
     {
         $hash = md5($offset);
-        $dir = $this->getParsedKey($hash);
-        if(!file_exists($this->getCachePath() . $dir)) {
-            mkdir($this->getCachePath() . $dir, 0777, true);
+        $dir = $this->getParsedPrefix($hash);
+        if (!file_exists($this->getCachePath() . $dir)) {
+            mkdir($this->getCachePath() . $dir, 0644, true);
         }
         $filePath = $this->getCachePath() . $dir . $hash;
-        if($this->offsetExists($filePath)) {
+        if ($this->offsetExists($filePath)) {
             unlink($filePath);
         }
         file_put_contents($filePath, serialize($value));
@@ -63,23 +59,25 @@ class FileArrayCache implements \ArrayAccess
     }
 
     /**
-     * Checks if cache key (filename) exists
+     * Checks if cache key (filename) exists.
      * @param string $offset Cache key (Filename)
      * @return boolean
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         $hash = md5($offset);
-        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
+        $filePath = $this->getCachePath() . $this->getParsedPrefix($hash) . $hash;
         return file_exists($filePath);
     }
 
     /**
-     * Removes cache key and value (file)
+     * Removes cache key and value (file).
      * @param string $offset Cache key (Filename)
      */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         $hash = md5($offset);
-        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
+        $filePath = $this->getCachePath() . $this->getParsedPrefix($hash) . $hash;
         unlink($filePath);
     }
 
@@ -88,9 +86,11 @@ class FileArrayCache implements \ArrayAccess
      * @param string $offset Cache key (filename)
      * @return mixed
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         $hash = md5($offset);
-        $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
+        $filePath = $this->getCachePath() . $this->getParsedPrefix($hash) . $hash;
         return $this->offsetExists($offset) ? unserialize(file_get_contents($filePath)) : null;
     }
+
 }
