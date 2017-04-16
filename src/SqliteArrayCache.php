@@ -42,9 +42,9 @@ class SqliteArrayCache implements \ArrayAccess
 
         $this->db = new \SQLite3($cacheFile);
         $this->db->exec("PRAGMA synchronous = OFF");
-        $this->db->exec("PRAGMA journal_mode = MEMORY");
+//        $this->db->exec("PRAGMA journal_mode = MEMORY");
         $this->db->exec("PRAGMA page_size = 31457280");
-        $this->db->exec("PRAGMA temp_store = MEMORY");
+//        $this->db->exec("PRAGMA temp_store = MEMORY");
         $this->db->exec("PRAGMA count_changes = OFF");
         $this->db->exec('BEGIN;
 CREATE TABLE cache (
