@@ -1,6 +1,10 @@
 <?php
 namespace IDCT;
 
+use NilPortugues\Serializer\Serializer;
+use NilPortugues\Serializer\JsonSerializer;
+use NilPortugues\Serializer\Strategy\JsonStrategy;
+
 class FileArrayCache implements \ArrayAccess
 {
     /**
@@ -8,6 +12,7 @@ class FileArrayCache implements \ArrayAccess
      * @var string
      */
     protected $cachePath;
+    protected $serializer;
 
     /**
      * Gets the cache path
@@ -33,7 +38,7 @@ class FileArrayCache implements \ArrayAccess
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
-
+        $this->serializer = new JsonSerializer();
     }
 
     protected function getParsedKey($hash) {
@@ -58,7 +63,9 @@ class FileArrayCache implements \ArrayAccess
         if($this->offsetExists($filePath)) {
             unlink($filePath);
         }
-        file_put_contents($filePath, serialize($value));
+        $serialized = $this->serializer->serialize($value);
+        file_put_contents($filePath, $serialized);
+        unset($serialized);
         return $filePath;
     }
 
@@ -91,6 +98,6 @@ class FileArrayCache implements \ArrayAccess
     public function offsetGet($offset) {
         $hash = md5($offset);
         $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
-        return $this->offsetExists($offset) ? unserialize(file_get_contents($filePath)) : null;
+        return $this->offsetExists($offset) ? $this->serializer->unserialize(file_get_contents($filePath)) : null;
     }
 }
