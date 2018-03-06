@@ -1,4 +1,5 @@
 <?php
+
 namespace IDCT;
 
 class SqliteArrayCache implements \ArrayAccess
@@ -11,15 +12,6 @@ class SqliteArrayCache implements \ArrayAccess
     protected $db;
 
     /**
-     * Gets the cache path
-     * @return string
-     */
-    public function getCachePath()
-    {
-        return $this->cachePath;
-    }
-
-    /**
      * Constructs the new object. Requires a cache path to be given.
      *
      * @param string $cachePath With the trailing slash
@@ -29,14 +21,13 @@ class SqliteArrayCache implements \ArrayAccess
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
-            if(false === mkdir($cachePath, 0777, true))
-            {
+            if (false === mkdir($cachePath, 0777, true)) {
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
 
         $cacheFile = $cachePath . 'cache.db';
-        if(file_exists($cacheFile) && $reset === true) {
+        if (file_exists($cacheFile) && $reset === true) {
             unlink($cacheFile);
         }
 
@@ -55,13 +46,26 @@ CREATE INDEX key_idx ON cache (key);
 COMMIT;');
     }
 
-    public function startImport() {
+    /**
+     * Gets the cache path
+     * @return string
+     */
+    public function getCachePath()
+    {
+        return $this->cachePath;
+    }
+
+    public function startImport()
+    {
         $this->db->exec("BEGIN TRANSACTION;");
+
         return $this;
     }
 
-    public function endImport() {
+    public function endImport()
+    {
         $this->db->exec("END TRANSACTION;");
+
         return $this;
     }
 
@@ -90,9 +94,10 @@ COMMIT;');
      * @param string $offset Cache key (Filename)
      * @return boolean
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         $value = $this->db->querySingle('SELECT value FROM cache WHERE key = "'.$offset.'"');
-        if($value === false || $value === null) {
+        if ($value === false || $value === null) {
             return false;
         }
 
@@ -103,7 +108,8 @@ COMMIT;');
      * Removes cache key and value (file)
      * @param string $offset Cache key (Filename)
      */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         $this->db->exec('DELETE FROM cache WHERE key = "'.$offset.'"');
     }
 
@@ -112,19 +118,21 @@ COMMIT;');
      * @param string $offset Cache key (filename)
      * @return mixed
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         $value = $this->db->querySingle('SELECT value FROM cache WHERE key = "'.$offset.'"');
-        if($value === false || $value === null) {
+        if ($value === false || $value === null) {
             return null;
         }
 
         return unserialize($value);
     }
 
-    public function pop($offset) {
+    public function pop($offset)
+    {
         $value = $this->db->querySingle('SELECT value FROM cache WHERE key = "'.$offset.'"');
         $this->db->exec('DELETE FROM cache WHERE key = "'.$offset.'"');
-        if($value === false || $value === null) {
+        if ($value === false || $value === null) {
             return null;
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace IDCT;
 
 class FileArrayCache implements \ArrayAccess
@@ -10,15 +11,6 @@ class FileArrayCache implements \ArrayAccess
     protected $cachePath;
 
     /**
-     * Gets the cache path
-     * @return string
-     */
-    public function getCachePath()
-    {
-        return $this->cachePath;
-    }
-
-    /**
      * Constructs the new object. Requires a cache path to be given.
      *
      * @param string $cachePath With the trailing slash
@@ -28,17 +20,19 @@ class FileArrayCache implements \ArrayAccess
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
-            if(false === mkdir($cachePath, 0777, true))
-            {
+            if (false === mkdir($cachePath, 0644, true)) {
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
     }
 
-    protected function getParsedKey($hash) {
-        $dir = substr($hash, 0, 2) . "/" . substr($hash, 2, 2) . "/";
-
-        return $dir;
+    /**
+     * Gets the cache path
+     * @return string
+     */
+    public function getCachePath()
+    {
+        return $this->cachePath;
     }
 
     /**
@@ -50,16 +44,17 @@ class FileArrayCache implements \ArrayAccess
     {
         $hash = md5($offset);
         $dir = $this->getParsedKey($hash);
-        if(!file_exists($this->getCachePath() . $dir)) {
+        if (!file_exists($this->getCachePath() . $dir)) {
             mkdir($this->getCachePath() . $dir, 0777, true);
         }
         $filePath = $this->getCachePath() . $dir . $hash;
-        if($this->offsetExists($filePath)) {
+        if ($this->offsetExists($filePath)) {
             unlink($filePath);
         }
-        $serialized = json_encode($value);
+        $serialized = $this->encode($value);
         file_put_contents($filePath, $serialized);
         unset($serialized);
+
         return $filePath;
     }
 
@@ -68,9 +63,11 @@ class FileArrayCache implements \ArrayAccess
      * @param string $offset Cache key (Filename)
      * @return boolean
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         $hash = md5($offset);
         $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
+
         return file_exists($filePath);
     }
 
@@ -78,7 +75,8 @@ class FileArrayCache implements \ArrayAccess
      * Removes cache key and value (file)
      * @param string $offset Cache key (Filename)
      */
-    public function offsetUnset($offset) {
+    public function offsetUnset($offset)
+    {
         $hash = md5($offset);
         $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
         unlink($filePath);
@@ -89,9 +87,39 @@ class FileArrayCache implements \ArrayAccess
      * @param string $offset Cache key (filename)
      * @return mixed
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         $hash = md5($offset);
         $filePath = $this->getCachePath() . $this->getParsedKey($hash) . $hash;
-        return $this->offsetExists($offset) ? json_decode(file_get_contents($filePath)) : null;
+
+        return $this->offsetExists($offset) ? $this->decode(file_get_contents($filePath)) : null;
+    }
+    /**
+     * Encoding method.
+     *
+     * @var Serializable $data
+     * @return string
+     */
+    protected function encode($data)
+    {
+        return json_encode($data);
+    }
+
+    /**
+     * Decoding method.
+     *
+     * @var string $data
+     * @return Serializable
+     */
+    protected function decode($data)
+    {
+        return json_decode($data);
+    }
+
+    protected function getParsedKey($hash)
+    {
+        $dir = substr($hash, 0, 2) . "/" . substr($hash, 2, 2) . "/";
+
+        return $dir;
     }
 }
