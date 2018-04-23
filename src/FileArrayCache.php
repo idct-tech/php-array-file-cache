@@ -20,7 +20,7 @@ class FileArrayCache implements \ArrayAccess
     {
         $this->cachePath = $cachePath;
         if (!file_exists($cachePath)) {
-            if (false === mkdir($cachePath, 0644, true)) {
+            if (false === mkdir($cachePath, 0744, true)) {
                 throw new \Exception("Could not initialize the cache directory.");
             }
         }
@@ -45,7 +45,7 @@ class FileArrayCache implements \ArrayAccess
         $hash = md5($offset);
         $dir = $this->getParsedKey($hash);
         if (!file_exists($this->getCachePath() . $dir)) {
-            mkdir($this->getCachePath() . $dir, 0777, true);
+            mkdir($this->getCachePath() . $dir, 0744, true);
         }
         $filePath = $this->getCachePath() . $dir . $hash;
         if ($this->offsetExists($filePath)) {
