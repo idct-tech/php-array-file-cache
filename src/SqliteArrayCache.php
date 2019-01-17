@@ -2,6 +2,10 @@
 
 namespace IDCT;
 
+/**
+ * @experimental
+ * @deprecated
+ */
 class SqliteArrayCache implements \ArrayAccess
 {
     /**

@@ -2,27 +2,21 @@
 
 namespace IDCT;
 
+use IDCT\Codec\SerializeCodec;
+
+/**
+ * {@inheritdoc}
+ * @deprecated
+ */
 class SerializedFileArrayCache extends FileArrayCache implements \ArrayAccess
 {
     /**
-     * Encoding method.
-     *
-     * @var Serializable $data
-     * @return string
+     * {@inheritdoc}
+     * @deprecated
      */
-    protected function encode($data)
+    public function __construct($cachePath, $levels = 2, IHashAlgo $hashAlgo = null, ICodec $codec = null)
     {
-        return serialize($data);
-    }
-
-    /**
-     * Decoding method.
-     *
-     * @var string $data
-     * @return Serializable
-     */
-    protected function decode($data)
-    {
-        return unserialize($data);
+        trigger_error("Warning: this class is deprecated and will be removed in the future. Remains here only for backwards compatiblity. Please use FileArrayCache with SerializeCodec if you wish to keep the same functionality", E_USER_NOTICE);
+        parent::__construct($cachePath, $levels, $hashAlgo, new SerializeCodec);
     }
 }
