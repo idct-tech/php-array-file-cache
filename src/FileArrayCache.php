@@ -96,9 +96,9 @@ class FileArrayCache implements \ArrayAccess
      */
     public function __construct($cachePath, $levels = 2, IHashAlgo $hashAlgo = null, ICodec $codec = null)
     {
-        if (substr($this->cachePath, -1, 1) !== DIRECTORY_SEPARATOR) {
-            $this->cachePath .= DIRECTORY_SEPARATOR;
-            \trigger_error('$cachePath\' (' . $cachePath . ') is not directory separator (' . DIRECTORY_SEPARATOR . '); adding it.', E_USER_NOTICE);
+        if (substr($cachePath, -1, 1) !== DIRECTORY_SEPARATOR) {
+            $cachePath .= DIRECTORY_SEPARATOR;
+            \trigger_error('Last character of $cachePath\' (' . $cachePath . ') is not directory separator (' . DIRECTORY_SEPARATOR . '); adding it.', E_USER_NOTICE);
         }
 
         $this->cachePath = $cachePath;
