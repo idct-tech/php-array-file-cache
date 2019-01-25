@@ -131,7 +131,7 @@ class FileArrayCache implements \ArrayAccess
         foreach ($objects as $object) {
             if ($object != "." && $object != "..") {
                 if (is_dir($dir.$object)) {
-                    rrmdir($dir.$object);
+                    self::rrmdir($dir.$object);
                 } elseif ($object !== 'cache_config') {
                     unlink($dir.$object);
                 }
@@ -259,7 +259,7 @@ class FileArrayCache implements \ArrayAccess
             foreach ($objects as $object) {
                 if ($object != "." && $object != "..") {
                     if (is_dir($dir."/".$object)) {
-                        rrmdir($dir."/".$object);
+                        self::rrmdir($dir."/".$object);
                     } else {
                         unlink($dir."/".$object);
                     }
