@@ -6,6 +6,8 @@ use IDCT\ICodec;
 
 class JsonCodec implements ICodec
 {
+    protected $decodeAsArray = false;
+
     /**
      * @inheritdoc
     */
@@ -19,6 +21,16 @@ class JsonCodec implements ICodec
     */
     public function decode($string)
     {
-        return json_decode($string);
+        return json_decode($string, $this->decodeAsArray);
+    }
+
+    public function decodeAsArray() {
+        $this->decodeAsArray = true;
+        return $this;
+    }
+
+    public function decodeAsClass() {
+        $this->decodeAsArray = false;
+        return $this;
     }
 }
